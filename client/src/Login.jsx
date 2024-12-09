@@ -1,19 +1,24 @@
+import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
-const Regisstration = () => {
-  const [name, setName] = useState();
+const Login = () => {
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
   const navigate = useNavigate();
 
+  axios.defaults.withCredentials = true;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:3001/register", { name, email, password })
+      .post("http://localhost:3001/login", { email, password })
       .then((res) => {
-        navigate("/login");
+        if (res.data.Login) {
+          navigate("/dashboard");
+        } else {
+          navigate("/");
+        }
       })
       .catch((err) => console.log(err));
   };
@@ -21,21 +26,8 @@ const Regisstration = () => {
   return (
     <div className="d-flex justify-content-center align-items-center bg-secondary vh-100">
       <div className="bg-white p-3 rounded w-25">
-        <h2>Register</h2>
+        <h2>Login</h2>
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="email">
-              <strong>Name</strong>
-            </label>
-            <input
-              type="text"
-              placeholder="Enter Name"
-              autoComplete="off"
-              name="email"
-              className="form-control rounded-0"
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
           <div className="mb-3">
             <label htmlFor="email">
               <strong>Email</strong>
@@ -62,19 +54,19 @@ const Regisstration = () => {
             />
           </div>
           <button type="submit" className="btn btn-success w-100 rounded-0">
-            Register
+            Login
           </button>
         </form>
-        <p>Already Have an Account</p>
+        <p>Don't have account</p>
         <button
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/register")}
           className="btn btn-default border w-100 bg-light rounded-0 text-decoration-none"
         >
-          Login
+          Register
         </button>
       </div>
     </div>
   );
 };
 
-export default Regisstration;
+export default Login;

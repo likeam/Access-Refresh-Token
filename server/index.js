@@ -60,6 +60,39 @@ app.post("/login", (req, res) => {
     .catch((err) => res.json(err));
 });
 
+const verifyUser = (req, res, next) => {
+  const accesstoken = req.cookies.accessToken;
+  if (!accesstoken) {
+    if (condition) {
+    }
+  } else {
+    jwt.verify(accesstoken, "jwt-access-token-secret", (err, decoded) => {
+      if (err) {
+        return res.json({ valid: false, message: "Invalid Token" });
+      } else {
+        req.email = decoded.email;
+        next();
+      }
+    });
+  }
+};
+
+const renewToken = (req, res) => {
+  const refreshtoken = req.cookies.refreshToken;
+  let exist = false;
+  if (!refreshtoken) {
+    return res.json({ valid: false, message: "No Refresh Token" });
+  } else {
+    jwt.verify(refreshtoken, "jwt-refresg-token-secret", (err, decoded) => {
+      if (err) {
+        return res.json({ valid: false, message: "Invalid Refresh Token" });
+      } else {
+        const accessToken = jwt.sign({ email: decoded.email });
+      }
+    });
+  }
+};
+
 app.get("/dashboard", (req, res) => {
   return res.json({ valid: true, message: "Authorized" });
 });

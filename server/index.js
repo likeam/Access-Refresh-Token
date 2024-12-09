@@ -7,6 +7,7 @@ import StudentModel from "./models/Student.js";
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 app.use(
   cors({
     origin: ["http://localhost:5173"],
@@ -33,40 +34,40 @@ app.post("/login", (req, res) => {
         if (user.password === password) {
           const accessToken = jwt.sign(
             { email: email },
-            "jwt-access-token-secret",
+            "jwt-access-token-secret-key",
             { expiresIn: "1m" }
           );
           const refreshToken = jwt.sign(
             { email: email },
-            "jwt-refresg-token-secret",
+            "jwt-refresh-token-secret-key",
             { expiresIn: "5m" }
           );
 
           res.cookie("accessToken", accessToken, { maxAge: 60000 });
+
           res.cookie("refreshToken", refreshToken, {
             maxAge: 300000,
             httpOnly: true,
             secure: true,
             sameSite: "strict",
           });
-          res.json({ Login: true });
-        } else {
-          res.json("Enter Correct Password");
+          return res.json({ Login: true });
         }
       } else {
-        res.json({ Login: false, Message: "No Record Exist" });
+        res.json({ Login: false, Message: "no record" });
       }
     })
     .catch((err) => res.json(err));
 });
 
-const verifyUser = (req, res, next) => {
+const varifyUser = (req, res, next) => {
   const accesstoken = req.cookies.accessToken;
   if (!accesstoken) {
-    if (condition) {
+    if (renewToken(req, res)) {
+      next();
     }
   } else {
-    jwt.verify(accesstoken, "jwt-access-token-secret", (err, decoded) => {
+    jwt.verify(accesstoken, "jwt-access-token-secret-key", (err, decoded) => {
       if (err) {
         return res.json({ valid: false, message: "Invalid Token" });
       } else {
@@ -81,19 +82,26 @@ const renewToken = (req, res) => {
   const refreshtoken = req.cookies.refreshToken;
   let exist = false;
   if (!refreshtoken) {
-    return res.json({ valid: false, message: "No Refresh Token" });
+    return res.json({ valid: false, message: "No Refresh token" });
   } else {
-    jwt.verify(refreshtoken, "jwt-refresg-token-secret", (err, decoded) => {
+    jwt.verify(refreshtoken, "jwt-refresh-token-secret-key", (err, decoded) => {
       if (err) {
         return res.json({ valid: false, message: "Invalid Refresh Token" });
       } else {
-        const accessToken = jwt.sign({ email: decoded.email });
+        const accessToken = jwt.sign(
+          { email: decoded.email },
+          "jwt-access-token-secret-key",
+          { expiresIn: "1m" }
+        );
+        res.cookie("accessToken", accessToken, { maxAge: 60000 });
+        exist = true;
       }
     });
   }
+  return exist;
 };
 
-app.get("/dashboard", (req, res) => {
+app.get("/dashboard", varifyUser, (req, res) => {
   return res.json({ valid: true, message: "Authorized" });
 });
 

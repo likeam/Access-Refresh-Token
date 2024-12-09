@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 const Dashboard = () => {
   const [message, setMessage] = useState();
   const navigate = useNavigate();
+  axios.defaults.withCredentials = true;
 
   useEffect(() => {
     axios
